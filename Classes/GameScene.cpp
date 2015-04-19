@@ -1,5 +1,8 @@
 #include "GameScene.h"
 #include <iostream>
+#include <cmath>
+
+#define PI 3.14159265
 
 Scene* gravity::GameScene::createScene()
 {
@@ -24,9 +27,7 @@ bool gravity::GameScene::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-    _me = Sprite::create();
-    _me->setTextureRect( Rect(0, 0, 20, 20) );
-    _me->setColor(Color3B::GREEN);
+    _me = Sprite::create("me.png");
     _me->setPosition(Vec2(visibleSize.width/2, visibleSize.height/2));
 
     schedule(CC_CALLBACK_1(gravity::GameScene::createOther, this), 1.0f, "create_other_key");
@@ -85,10 +86,8 @@ void gravity::GameScene::createOther(float dt)
 {
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
-    auto other = Sprite::create();
+    auto other = Sprite::create("other.png");
     other->setTag(1);
-    other->setTextureRect( Rect(0, 0, 30, 30) );
-    other->setColor(Color3B::RED);
     _others.pushBack(other);
 
     int startx, starty, endx, endy;
@@ -153,12 +152,14 @@ void gravity::GameScene::onTouchEnded(Touch* touch, Event  *event)
 
     int diffx = location.x - pos.x;
     int diffy = location.y - pos.y;
+    float angle = - atan2(diffy, diffx) * 180 / PI;
 
     dest.x = diffx * 100 / 300;
     dest.y = diffy * 100 / 300;
 
     auto action = MoveBy::create(0.5f, dest);
     _me->runAction(RepeatForever::create(action));
+    _me->runAction(RotateTo::create(1.5f, angle));
 }
 
 void gravity::GameScene::explosion(Sprite *other)
