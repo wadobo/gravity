@@ -3,6 +3,9 @@
 #include <cmath>
 
 #define PI 3.14159265
+#define DIED 132
+#define ASTEROID 1
+#define FIREBALL 2
 
 Scene* gravity::GameScene::createScene()
 {
@@ -19,6 +22,8 @@ bool gravity::GameScene::init()
         return false;
     }
 
+    _gameOver = false;
+
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = CC_CALLBACK_2(gravity::GameScene::onTouchBegan, this);
     listener->onTouchEnded = CC_CALLBACK_2(gravity::GameScene::onTouchEnded, this);
@@ -31,16 +36,23 @@ bool gravity::GameScene::init()
     _me->setPosition(Vec2(visibleSize.width/2, visibleSize.height/2));
 
     schedule(CC_CALLBACK_1(gravity::GameScene::createOther, this), 1.0f, "create_other_key");
+    schedule(CC_CALLBACK_1(gravity::GameScene::fire, this), 0.5f, "fire_key");
 
     schedule(schedule_selector(gravity::GameScene::update));
 
     _collisions = 0;
-    _label = Label::createWithTTF(std::string("Collisions: 0"), "fonts/arial.ttf", 16.0f);
+    _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 16.0f);
     _label->setPosition(10, visibleSize.height - 10);
     _label->setAnchorPoint(Vec2(0, 1));
 
+    _max = 0;
+    _label2 = Label::createWithTTF(std::string("Max: 0"), "fonts/arial.ttf", 16.0f);
+    _label2->setPosition(visibleSize.width - 10, visibleSize.height - 10);
+    _label2->setAnchorPoint(Vec2(1, 1));
+
     addChild(_me, 1);
     addChild(_label);
+    addChild(_label2);
 
     return true;
 }
@@ -51,6 +63,7 @@ void gravity::GameScene::update(float dt)
     Rect r(0, 0, visibleSize.width, visibleSize.height);
     Vec2 pos = _me->getPosition();
 
+    // The space is infinite
     if (!r.containsPoint(pos)) {
         if (pos.x > visibleSize.width) {
             pos.x = 0;
@@ -65,22 +78,66 @@ void gravity::GameScene::update(float dt)
         _me->setPosition(pos);
     }
 
+    if (_gameOver) {
+        return;
+    }
+
     // collisions
     for ( auto &other: _others ) {
-        if (other->getTag() == 2) {
+        if (other->getTag() == DIED) {
             continue;
         }
 
+        // Asteroids collision
         auto bbox = other->getBoundingBox();
-        if (bbox.intersectsRect(_me->getBoundingBox())) {
-            _collisions++;
-            char str[200];
-            sprintf(str, "Collisions: %d", _collisions);
-            _label->setString(std::string(str));
-            other->setTag(2);
-            other->setColor(Color3B::BLUE);
-            explosion(other);
+        for ( auto &fireball: _fireBalls ) {
+            if (fireball->getTag() == DIED) {
+                continue;
+            }
+
+            if (bbox.intersectsRect(fireball->getBoundingBox())) {
+                char str[200];
+
+                _collisions++;
+                if (_collisions > _max) {
+                    _max = _collisions;
+                    sprintf(str, "Max: %d", _max);
+                    _label2->setString(std::string(str));
+                }
+                sprintf(str, "Points: %d", _collisions);
+                _label->setString(std::string(str));
+                fireball->setTag(DIED);
+                other->setTag(DIED);
+                explosion(other);
+                removeOther(fireball);
+            }
+
         }
+
+        // Me and asteroid collision
+        if (bbox.intersectsRect(_me->getBoundingBox())) {
+            _gameOver = true;
+            char str[200];
+            sprintf(str, "GAME OVER!");
+            _gameOverLabel = Label::createWithTTF(std::string(str), "fonts/arial.ttf", 60.0f);
+            _gameOverLabel->setPosition(r.getMidX(), r.getMidY());
+            _gameOverLabel->runAction(RepeatForever::create(Blink::create(2, 1)));
+            addChild(_gameOverLabel, 500);
+
+            explosion(_me);
+            _me->setColor(Color3B(180,100,100));
+            _me->runAction(RepeatForever::create(Blink::create(1, 1)));
+        }
+    }
+
+    // Removing out fireballs
+    int i=0;
+    while(i<_fireBalls.size()) {
+        auto fb = _fireBalls.at(i);
+        if (!r.intersectsRect(fb->getBoundingBox())) {
+            removeOther(fb);
+        }
+        i++;
     }
 }
 
@@ -89,12 +146,14 @@ void gravity::GameScene::createOther(float dt)
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
     auto other = Sprite::create("other.png");
-    other->setTag(1);
+    other->setTag(ASTEROID);
     _others.pushBack(other);
 
+    float scale = 0.8f;
     int startx, starty, endx, endy;
     float rand;
 
+    scale = (CCRANDOM_0_1() + 0.5f) * scale;
     startx = (int)(CCRANDOM_0_1() * visibleSize.width);
     starty = (int)(CCRANDOM_0_1() * visibleSize.height);
 
@@ -117,6 +176,7 @@ void gravity::GameScene::createOther(float dt)
     }
 
     other->setPosition(Vec2(startx, starty));
+    other->setScale(scale, scale);
 
     int speed = (int)(CCRANDOM_0_1() * 4) + 3;
 
@@ -129,7 +189,7 @@ void gravity::GameScene::createOther(float dt)
         Sequence::create(
             DelayTime::create(int(CCRANDOM_0_1() * 5)),
             action,
-            CallFunc::create(CC_CALLBACK_0(gravity::GameScene::removeOther,this, other)),
+            CallFunc::create(CC_CALLBACK_0(gravity::GameScene::removeOther, this, other)),
             nullptr));
 
     addChild(other, 1);
@@ -137,8 +197,18 @@ void gravity::GameScene::createOther(float dt)
 
 void gravity::GameScene::removeOther(Sprite *sender)
 {
+    switch (sender->getTag()) {
+        case ASTEROID:
+            _others.eraseObject(sender);
+            break;
+        case FIREBALL:
+            _fireBalls.eraseObject(sender);
+            break;
+        default:
+            break;
+    }
+
     removeChild(sender, true);
-    _others.eraseObject(sender);
 }
 
 bool gravity::GameScene::onTouchBegan(Touch* touch, Event  *event)
@@ -148,6 +218,11 @@ bool gravity::GameScene::onTouchBegan(Touch* touch, Event  *event)
 
 void gravity::GameScene::onTouchEnded(Touch* touch, Event  *event)
 {
+    if (_gameOver) {
+        restart();
+        return;
+    }
+
     auto location = touch->getLocation();
     Vec2 dest = Vec2(0, 0);
     Vec2 pos = _me->getPosition();
@@ -161,7 +236,7 @@ void gravity::GameScene::onTouchEnded(Touch* touch, Event  *event)
 
     auto action = MoveBy::create(0.5f, dest);
     _me->runAction(RepeatForever::create(action));
-    _me->runAction(RotateTo::create(1.5f, angle));
+    _me->runAction(RotateTo::create(0.5f, angle));
 }
 
 void gravity::GameScene::explosion(Sprite *other)
@@ -169,5 +244,64 @@ void gravity::GameScene::explosion(Sprite *other)
     ParticleSystemQuad *emitter = ParticleSystemQuad::create("ExplodingRing.plist");
     emitter->setPosition(other->getPosition());
     addChild(emitter, 100);
-    removeOther(other);
+    if (other->getTag() == DIED) {
+        removeOther(other);
+    }
+}
+
+void gravity::GameScene::fire(float dt)
+{
+    if (_gameOver) {
+        return;
+    }
+
+    auto fireball = Sprite::create("fire.png");
+    auto fireball2 = Sprite::create("fire.png");
+    fireball->setTag(FIREBALL);
+    fireball2->setTag(FIREBALL);
+    _fireBalls.pushBack(fireball);
+    _fireBalls.pushBack(fireball2);
+
+    fireball->setAnchorPoint(Vec2(0.5, 3));
+    fireball->setPosition(_me->getPosition());
+    fireball->setRotation(_me->getRotation());
+
+    fireball2->setAnchorPoint(Vec2(0.5, -2));
+    fireball2->setPosition(_me->getPosition());
+    fireball2->setRotation(_me->getRotation());
+
+    float rad = PI * _me->getRotation() / 180.0f;
+    int speed = 180;
+    int incx = (int) (cos(rad) * speed);
+    int incy = (int) -(sin(rad) * speed);
+
+    fireball->runAction(
+            RepeatForever::create(MoveBy::create(0.5f, Vec2(incx, incy)))
+            );
+
+    fireball2->runAction(
+            RepeatForever::create(MoveBy::create(0.5f, Vec2(incx, incy)))
+            );
+
+    addChild(fireball, -1);
+    addChild(fireball2, -1);
+}
+
+void gravity::GameScene::restart()
+{
+    Size visibleSize = Director::getInstance()->getVisibleSize();
+    Rect r(0, 0, visibleSize.width, visibleSize.height);
+    char str[200];
+    _me->setPosition(r.getMidX(), r.getMidY());
+    _collisions = 0;
+    sprintf(str, "Points: %d", _collisions);
+    _label->setString(std::string(str));
+    _me->setRotation(0);
+    _me->setColor(Color3B(255,255,255));
+    _me->stopAllActions();
+    _me->setVisible(true);
+    _me->runAction(Blink::create(1, 2));
+    removeChild(_gameOverLabel, true);
+
+    _gameOver = false;
 }

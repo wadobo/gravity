@@ -22,16 +22,24 @@ public:
 private:
     Sprite *_me;
     Label *_label;
+    Label *_label2;
+    Label *_gameOverLabel;
     Vector<Sprite*> _others;
+    Vector<Sprite*> _fireBalls;
     int _collisions;
+    int _max;
+    bool _gameOver;
 
     void createOther(float dt);
+    void fire(float dt);
 
     bool onTouchBegan(Touch* touch, Event  *event);
     void onTouchEnded(Touch* touch, Event  *event);
     void update(float dt);
     void removeOther(Sprite *sender);
     void explosion(Sprite *sender);
+
+    void restart();
 };
 
 }
