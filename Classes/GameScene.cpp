@@ -41,12 +41,12 @@ bool gravity::GameScene::init()
     schedule(schedule_selector(gravity::GameScene::update));
 
     _collisions = 0;
-    _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 16.0f);
+    _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 20.0f);
     _label->setPosition(10, visibleSize.height - 10);
     _label->setAnchorPoint(Vec2(0, 1));
 
     _max = 0;
-    _label2 = Label::createWithTTF(std::string("Max: 0"), "fonts/arial.ttf", 16.0f);
+    _label2 = Label::createWithTTF(std::string("Max: 0"), "fonts/arial.ttf", 20.0f);
     _label2->setPosition(visibleSize.width - 10, visibleSize.height - 10);
     _label2->setAnchorPoint(Vec2(1, 1));
 
@@ -119,7 +119,7 @@ void gravity::GameScene::update(float dt)
             _gameOver = true;
             char str[200];
             sprintf(str, "GAME OVER!");
-            _gameOverLabel = Label::createWithTTF(std::string(str), "fonts/arial.ttf", 60.0f);
+            _gameOverLabel = Label::createWithTTF(std::string(str), "fonts/arial.ttf", 80.0f);
             _gameOverLabel->setPosition(r.getMidX(), r.getMidY());
             _gameOverLabel->runAction(RepeatForever::create(Blink::create(2, 1)));
             addChild(_gameOverLabel, 500);
