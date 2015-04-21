@@ -35,7 +35,7 @@ bool gravity::GameScene::init()
     schedule(schedule_selector(gravity::GameScene::update));
 
     _collisions = 0;
-    _label = Label::createWithTTF(std::string("Collisions: ") + std::to_string(_collisions), "fonts/arial.ttf", 16.0f);
+    _label = Label::createWithTTF(std::string("Collisions: 0"), "fonts/arial.ttf", 16.0f);
     _label->setPosition(10, visibleSize.height - 10);
     _label->setAnchorPoint(Vec2(0, 1));
 
@@ -74,7 +74,9 @@ void gravity::GameScene::update(float dt)
         auto bbox = other->getBoundingBox();
         if (bbox.intersectsRect(_me->getBoundingBox())) {
             _collisions++;
-            _label->setString(std::string("Collisions: ") + std::to_string(_collisions));
+            char str[200];
+            sprintf(str, "Collisions: %d", _collisions);
+            _label->setString(std::string(str));
             other->setTag(2);
             other->setColor(Color3B::BLUE);
             explosion(other);
