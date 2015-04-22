@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "GameScene.h"
+#include "IntroScene.h"
 
 USING_NS_CC;
 
@@ -47,7 +47,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     register_all_packages();
 
     // create a scene. it's an autorelease object
-    auto scene = gravity::GameScene::createScene();
+    auto scene = gravity::IntroScene::createScene();
 
     // run
     director->runWithScene(scene);
