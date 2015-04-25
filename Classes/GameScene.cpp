@@ -42,6 +42,7 @@ bool gravity::GameScene::init()
     }
 
     _gameOver = false;
+    _gameOverLabel = 0;
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = CC_CALLBACK_2(gravity::GameScene::onTouchBegan, this);
@@ -58,6 +59,13 @@ bool gravity::GameScene::init()
     schedule(CC_CALLBACK_1(gravity::GameScene::fire, this), 0.5f, "fire_key");
 
     schedule(schedule_selector(gravity::GameScene::update));
+
+    char str[200];
+    sprintf(str, "GAME OVER!");
+    _gameOverLabel = Label::createWithTTF(std::string(str), "fonts/arial.ttf", 80.0f);
+    _gameOverLabel->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+    _gameOverLabel->setVisible(false);
+    addChild(_gameOverLabel, 500);
 
     _collisions = 0;
     _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 20.0f);
@@ -136,12 +144,8 @@ void gravity::GameScene::update(float dt)
         // Me and asteroid collision
         if (bbox.intersectsRect(_me->getBoundingBox())) {
             _gameOver = true;
-            char str[200];
-            sprintf(str, "GAME OVER!");
-            _gameOverLabel = Label::createWithTTF(std::string(str), "fonts/arial.ttf", 80.0f);
-            _gameOverLabel->setPosition(r.getMidX(), r.getMidY());
+            _gameOverLabel->setVisible(true);
             _gameOverLabel->runAction(RepeatForever::create(Blink::create(2, 1)));
-            addChild(_gameOverLabel, 500);
 
             explosion(_me);
             _me->setColor(Color3B(180,100,100));
@@ -320,7 +324,8 @@ void gravity::GameScene::restart()
     _me->stopAllActions();
     _me->setVisible(true);
     _me->runAction(Blink::create(1, 2));
-    removeChild(_gameOverLabel, true);
+    _gameOverLabel->stopAllActions();
+    _gameOverLabel->setVisible(false);
 
     _gameOver = false;
 }
