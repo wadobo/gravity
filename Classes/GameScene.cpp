@@ -68,12 +68,12 @@ bool gravity::GameScene::init()
     addChild(_gameOverLabel, 500);
 
     _collisions = 0;
-    _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 20.0f);
+    _label = Label::createWithTTF(std::string("Points: 0"), "fonts/arial.ttf", 30.0f);
     _label->setPosition(10, visibleSize.height - 10);
     _label->setAnchorPoint(Vec2(0, 1));
 
     _max = 0;
-    _label2 = Label::createWithTTF(std::string("Max: 0"), "fonts/arial.ttf", 20.0f);
+    _label2 = Label::createWithTTF(std::string("Max: 0"), "fonts/arial.ttf", 30.0f);
     _label2->setPosition(visibleSize.width - 10, visibleSize.height - 10);
     _label2->setAnchorPoint(Vec2(1, 1));
 
