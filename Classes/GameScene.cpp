@@ -18,6 +18,7 @@
 
 
 #include "GameScene.h"
+#include "IntroScene.h"
 #include <iostream>
 #include <cmath>
 
@@ -48,6 +49,10 @@ bool gravity::GameScene::init()
     listener->onTouchBegan = CC_CALLBACK_2(gravity::GameScene::onTouchBegan, this);
     listener->onTouchEnded = CC_CALLBACK_2(gravity::GameScene::onTouchEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
+    auto keyListener = EventListenerKeyboard::create();
+    keyListener->onKeyPressed = CC_CALLBACK_2(gravity::GameScene::onKeyPressed, this);
+    Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyListener, this);
 
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -260,6 +265,15 @@ void gravity::GameScene::onTouchEnded(Touch* touch, Event  *event)
     auto action = MoveBy::create(0.5f, dest);
     _me->runAction(RepeatForever::create(action));
     _me->runAction(RotateTo::create(0.5f, angle));
+}
+
+void gravity::GameScene::onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event  *event)
+{
+    if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
+    {
+        auto intro = IntroScene::createScene();
+        Director::getInstance()->replaceScene(TransitionFade::create(0.5, intro, Color3B(0,0,0)));
+    }
 }
 
 void gravity::GameScene::explosion(Sprite *other)

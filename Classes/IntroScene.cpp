@@ -42,6 +42,10 @@ bool gravity::IntroScene::init()
     listener->onTouchEnded = CC_CALLBACK_2(gravity::IntroScene::onTouchEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
+    auto keyListener = EventListenerKeyboard::create();
+    keyListener->onKeyPressed = CC_CALLBACK_2(gravity::IntroScene::onKeyPressed, this);
+    Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyListener, this);
+
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
     _wadobo = Sprite::create("wadobo-games.png");
@@ -90,4 +94,11 @@ void gravity::IntroScene::onTouchEnded(Touch* touch, Event  *event)
 {
     auto game = GameScene::createScene();
     Director::getInstance()->replaceScene(TransitionFade::create(0.5, game, Color3B(0,0,0)));
+}
+void gravity::IntroScene::onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event  *event)
+{
+    if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
+    {
+        exit(0);
+    }
 }
