@@ -50,6 +50,7 @@ private:
     bool onTouchBegan(Touch* touch, Event  *event);
     void onTouchEnded(Touch* touch, Event  *event);
     void onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event *event);
+    void onKeyReleased(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event);
     void update(float dt);
     void removeOther(Sprite *sender);
     void explosion(Sprite *sender);

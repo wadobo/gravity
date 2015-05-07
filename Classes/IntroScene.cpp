@@ -36,6 +36,7 @@ bool gravity::IntroScene::init()
     {
         return false;
     }
+    this->setKeypadEnabled(true);
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->onTouchBegan = CC_CALLBACK_2(gravity::IntroScene::onTouchBegan, this);
@@ -96,6 +97,13 @@ void gravity::IntroScene::onTouchEnded(Touch* touch, Event  *event)
     Director::getInstance()->replaceScene(TransitionFade::create(0.5, game, Color3B(0,0,0)));
 }
 void gravity::IntroScene::onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event  *event)
+{
+    if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
+    {
+        exit(0);
+    }
+}
+void gravity::IntroScene::onKeyReleased(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event)
 {
     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
     {

@@ -41,6 +41,7 @@ bool gravity::GameScene::init()
     {
         return false;
     }
+    this->setKeypadEnabled(true);
 
     _gameOver = false;
     _gameOverLabel = 0;
@@ -52,6 +53,7 @@ bool gravity::GameScene::init()
 
     auto keyListener = EventListenerKeyboard::create();
     keyListener->onKeyPressed = CC_CALLBACK_2(gravity::GameScene::onKeyPressed, this);
+    keyListener->onKeyReleased = CC_CALLBACK_2(gravity::GameScene::onKeyReleased, this);
     Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyListener, this);
 
     Size visibleSize = Director::getInstance()->getVisibleSize();
@@ -268,6 +270,15 @@ void gravity::GameScene::onTouchEnded(Touch* touch, Event  *event)
 }
 
 void gravity::GameScene::onKeyPressed(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event  *event)
+{
+    if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
+    {
+        auto intro = IntroScene::createScene();
+        Director::getInstance()->replaceScene(TransitionFade::create(0.5, intro, Color3B(0,0,0)));
+    }
+}
+
+void gravity::GameScene::onKeyReleased(cocos2d::EventKeyboard::KeyCode keyCode, cocos2d::Event* event)
 {
     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
     {
