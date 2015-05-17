@@ -19,6 +19,7 @@
 
 #include "GameScene.h"
 #include "IntroScene.h"
+#include "SimpleAudioEngine.h"
 #include <iostream>
 #include <cmath>
 
@@ -142,6 +143,7 @@ void gravity::GameScene::update(float dt)
                 _label->setString(std::string(str));
                 fireball->setTag(DIED);
                 other->setTag(DIED);
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explosion_enemy.wav", false);
                 explosion(other);
                 removeOther(fireball);
             }
@@ -154,6 +156,8 @@ void gravity::GameScene::update(float dt)
             _gameOverLabel->setVisible(true);
             _gameOverLabel->runAction(RepeatForever::create(Blink::create(2, 1)));
 
+
+            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explosion_player.wav", false);
             explosion(_me);
             _me->setColor(Color3B(180,100,100));
             _me->runAction(RepeatForever::create(Blink::create(1, 1)));
